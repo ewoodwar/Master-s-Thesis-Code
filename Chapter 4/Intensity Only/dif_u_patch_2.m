@@ -1,0 +1,26 @@
+function [deriv_h_u2] =dif_u_patch_2(v1,v2,w1,w2,u1,u2,mu1,mu2,rho1,rho2,alpha1,alpha2,adjoint_v_1,adjoint_v_2,adjoint_w_1,adjoint_w_2,timing_1,timing_2,p1,p2)
+%in this section, I approximate the derivative of each of my function wrt that state
+
+%Here I am using the 2-point difference method
+h=0.0001; %step size
+u_right_2 = min(0.9, u2 + h);
+u_left_2 = max(0, u2 - h);
+[v_right_1,v_right_2,w_right_1,w_right_2]=map_twopatch(v1,v2,w1,w2,u1,u_right_2,mu1,mu2,rho1,rho2,alpha1,alpha2,timing_1,timing_2,p1,p2);
+[v_left_1,v_left_2,w_left_1,w_left_2]=map_twopatch(v1,v2,w1,w2,u1,u_left_2,mu1,mu2,rho1,rho2,alpha1,alpha2,timing_1,timing_2,p1,p2);
+
+
+%hamiltonian perturbed ONLY in u. The reason v and w multiplied are in the next time step is that they are already like that in the hamiltonian.
+h_right = 30*u_right_2^2 + 5*u1^2 + w1^2 + w2^2 ...
+          + adjoint_v_1 * v_right_1 ...
+          + adjoint_v_2 * v_right_2 ...
+          + adjoint_w_1 * w_right_1 ...
+          + adjoint_w_2 * w_right_2;
+
+h_left  = 30*u_left_2^2 + 5*u1^2 + w1^2 + w2^2 ...
+          + adjoint_v_1 * v_left_1 ...
+          + adjoint_v_2 * v_left_2 ...
+          + adjoint_w_1 * w_left_1 ...
+          + adjoint_w_2 * w_left_2;
+
+%Difference using divided difference formula
+deriv_h_u2=(h_right-h_left)/(2*h);
